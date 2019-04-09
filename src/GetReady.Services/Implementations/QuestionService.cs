@@ -319,7 +319,6 @@ namespace GetReady.Services.Implementations
         #endregion
 
         #region Reorder
-        //TODO: Fix Reorder.
         public void Reorder(ReorderData data, int userId)
         {
             var sheet = this.context.QuestionSheets
@@ -341,35 +340,34 @@ namespace GetReady.Services.Implementations
                 throw new ServiceException("Sheet Does Not Belong To You!");
             }
 
-            var questions = this.context.PersonalQuestionPackages
-                .Where(x => x.QuestionSheetId == sheet.Id)
+            var orderings = data.Orderings
+                .Select((x, i) => new { newOrder = i, oldOrder = x })
+                .Where(x => x.newOrder != x.oldOrder)
+                .OrderBy(x=>x.oldOrder)
                 .ToArray();
 
-            var sentIds = data.Orderings.Select(x => x[0]).ToArray();
+            var questionsNumber = this.context.PersonalQuestionPackages
+                .Where(x => x.QuestionSheetId == sheet.Id)
+                .Count();
 
-            if (sentIds.Length != sentIds.Distinct().ToArray().Length)
+            var questionsToChange = this.context.PersonalQuestionPackages
+                .Where(x => x.QuestionSheetId == sheet.Id && orderings.Select(o => o.oldOrder).Contains(x.Order))
+                .OrderBy(x=>x.Order)
+                .ToArray();
+
+            if(questionsNumber != data.Orderings.Length || orderings.Length != questionsToChange.Length)
             {
-                throw new ServiceException("Invalid Reorder Data!");
+                throw new ServiceException("Question Count Does Not Match Up With Db Info!");
             }
 
-            if (questions.Length != sentIds.Length)
+            for (int i = 0; i < questionsToChange.Length; i++)
             {
-                throw new ServiceException("Invalid Reorder Data!");
-            }
+                if(orderings[i].oldOrder != questionsToChange[i].Order)
+                {
+                    throw new ServiceException("Questions Are Not Ordered That Way In Db!");
+                }
 
-            if (questions.Select(x => x.Id).Any(x => !sentIds.Contains(x)))
-            {
-                throw new Exception("Invalid Reorder Data!");
-            }
-
-            for (int i = 0; i < questions.Length; i++)
-            {
-                var question = questions[i];
-                var ordering = data.Orderings.Single(x => x[0] == question.Id);
-                var order = ordering[1];
-                var col = ordering[2];
-
-                question.Order = order;
+                questionsToChange[i].Order = orderings[i].newOrder;
             }
 
             context.SaveChanges();
@@ -384,35 +382,34 @@ namespace GetReady.Services.Implementations
                 throw new ServiceException("Sheet to Reorder Does not Exist!");
             }
 
-            var questions = this.context.GlobalQuestionPackages
-                .Where(x => x.QuestionSheetId == sheet.Id)
+            var orderings = data.Orderings
+                .Select((x, i) => new { newOrder = i, oldOrder = x })
+                .Where(x => x.newOrder != x.oldOrder)
+                .OrderBy(x => x.oldOrder)
                 .ToArray();
 
-            var sentIds = data.Orderings.Select(x => x[0]).ToArray();
+            var questionsNumber = this.context.GlobalQuestionPackages
+                .Where(x => x.QuestionSheetId == sheet.Id)
+                .Count();
 
-            if (sentIds.Length != sentIds.Distinct().ToArray().Length)
+            var questionsToChange = this.context.GlobalQuestionPackages
+                .Where(x => x.QuestionSheetId == sheet.Id && orderings.Select(o => o.oldOrder).Contains(x.Order))
+                .OrderBy(x => x.Order)
+                .ToArray();
+
+            if (questionsNumber != data.Orderings.Length || orderings.Length != questionsToChange.Length)
             {
-                throw new ServiceException("Invalid Reorder Data!");
+                throw new ServiceException("Question Count Does Not Match Up With Db Info!");
             }
 
-            if (questions.Length != sentIds.Length)
+            for (int i = 0; i < questionsToChange.Length; i++)
             {
-                throw new ServiceException("Invalid Reorder Data!");
-            }
+                if (orderings[i].oldOrder != questionsToChange[i].Order)
+                {
+                    throw new ServiceException("Questions Are Not Ordered That Way In Db!");
+                }
 
-            if (questions.Select(x => x.Id).Any(x => !sentIds.Contains(x)))
-            {
-                throw new Exception("Invalid Reorder Data!");
-            }
-
-            for (int i = 0; i < questions.Length; i++)
-            {
-                var question = questions[i];
-                var ordering = data.Orderings.Single(x => x[0] == question.Id);
-                var order = ordering[1];
-                var col = ordering[2];
-
-                question.Order = order;
+                questionsToChange[i].Order = orderings[i].newOrder;
             }
 
             context.SaveChanges();

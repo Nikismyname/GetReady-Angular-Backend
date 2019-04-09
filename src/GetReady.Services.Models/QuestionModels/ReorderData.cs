@@ -4,6 +4,6 @@
     {
         public int SheetId { get; set; }
 
-        public int[][] Orderings { get; set; }
+        public int[] Orderings { get; set; }
     }
 }
