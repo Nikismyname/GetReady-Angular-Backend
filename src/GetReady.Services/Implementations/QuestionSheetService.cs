@@ -452,6 +452,7 @@ namespace GetReady.Services.Implementations
             this.ReorderSheets(data.SheetId, data.Orderings);
         }
 
+        //TODO: Can be optimised
         private void ReorderSheets(int sheetId, int[][] orderings)
         {
             var sheets = context.QuestionSheets.Where(x => x.QuestionSheetId == sheetId).ToArray();
@@ -467,7 +468,7 @@ namespace GetReady.Services.Implementations
             for (int i = 0; i < orderings.Length; i++)
             {
                 var currentId = orderings[i][0];
-                var currentOrder = orderings[i][1];
+                var currentOrder = i;
                 var currentSheet = sheets.Single(x => x.Id == currentId);
                 currentSheet.Order = currentOrder;
             }

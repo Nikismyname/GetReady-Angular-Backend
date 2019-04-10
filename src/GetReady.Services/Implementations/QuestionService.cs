@@ -341,33 +341,40 @@ namespace GetReady.Services.Implementations
             }
 
             var orderings = data.Orderings
-                .Select((x, i) => new { newOrder = i, oldOrder = x })
+                .Select((x, i) => new { id = x[0], newOrder = i, oldOrder = x[1] })
                 .Where(x => x.newOrder != x.oldOrder)
-                .OrderBy(x=>x.oldOrder)
+                .OrderBy(x => x.oldOrder)
                 .ToArray();
-
-            var questionsNumber = this.context.PersonalQuestionPackages
-                .Where(x => x.QuestionSheetId == sheet.Id)
-                .Count();
 
             var questionsToChange = this.context.PersonalQuestionPackages
                 .Where(x => x.QuestionSheetId == sheet.Id && orderings.Select(o => o.oldOrder).Contains(x.Order))
-                .OrderBy(x=>x.Order)
+                .OrderBy(x => x.Order)
                 .ToArray();
 
-            if(questionsNumber != data.Orderings.Length || orderings.Length != questionsToChange.Length)
-            {
-                throw new ServiceException("Question Count Does Not Match Up With Db Info!");
-            }
+            bool shouldReorderAll = false;
 
             for (int i = 0; i < questionsToChange.Length; i++)
             {
-                if(orderings[i].oldOrder != questionsToChange[i].Order)
+                if (orderings[i].oldOrder != questionsToChange[i].Order || orderings[i].id != questionsToChange[i].Id)
                 {
-                    throw new ServiceException("Questions Are Not Ordered That Way In Db!");
+                    shouldReorderAll = true;
+                    break;
                 }
 
                 questionsToChange[i].Order = orderings[i].newOrder;
+            }
+
+            if (shouldReorderAll)
+            {
+                var allQuestions = this.context.PersonalQuestionPackages
+                   .Where(x => x.QuestionSheetId == sheet.Id)
+                   .OrderBy(x => x.Order)
+                   .ToArray();
+
+                for (int i = 0; i < allQuestions.Length; i++)
+                {
+                    allQuestions[i].Order = i;
+                }
             }
 
             context.SaveChanges();
@@ -383,33 +390,40 @@ namespace GetReady.Services.Implementations
             }
 
             var orderings = data.Orderings
-                .Select((x, i) => new { newOrder = i, oldOrder = x })
+                .Select((x, i) => new {Id =x[0], newOrder = i, oldOrder = x[1] })
                 .Where(x => x.newOrder != x.oldOrder)
                 .OrderBy(x => x.oldOrder)
                 .ToArray();
-
-            var questionsNumber = this.context.GlobalQuestionPackages
-                .Where(x => x.QuestionSheetId == sheet.Id)
-                .Count();
 
             var questionsToChange = this.context.GlobalQuestionPackages
                 .Where(x => x.QuestionSheetId == sheet.Id && orderings.Select(o => o.oldOrder).Contains(x.Order))
                 .OrderBy(x => x.Order)
                 .ToArray();
 
-            if (questionsNumber != data.Orderings.Length || orderings.Length != questionsToChange.Length)
-            {
-                throw new ServiceException("Question Count Does Not Match Up With Db Info!");
-            }
-
+            var shouldReorder = false;
+            
             for (int i = 0; i < questionsToChange.Length; i++)
             {
-                if (orderings[i].oldOrder != questionsToChange[i].Order)
+                if (orderings[i].oldOrder != questionsToChange[i].Order || orderings[i].Id != questionsToChange[i].Id)
                 {
-                    throw new ServiceException("Questions Are Not Ordered That Way In Db!");
+                    shouldReorder = true;
+                    break;
                 }
 
                 questionsToChange[i].Order = orderings[i].newOrder;
+            }
+
+            if (shouldReorder)
+            {
+                var allQuestions = this.context.GlobalQuestionPackages
+                    .Where(x => x.QuestionSheetId == sheet.Id)
+                    .OrderBy(x => x.Order)
+                    .ToArray();
+
+                for (int i = 0; i < allQuestions.Length; i++)
+                {
+                    allQuestions[i].Order = i;
+                }
             }
 
             context.SaveChanges();
@@ -455,12 +469,12 @@ namespace GetReady.Services.Implementations
             }
 
             var targetDirectory = this.context.QuestionSheets
-                .Select(x=> new
+                .Select(x => new
                 {
                     x.Id,
                     x.IsGlobal,
                     x.UserId,
-                    orders = x.PersonalQuestions.Select(pq=> pq.Order).ToArray()
+                    orders = x.PersonalQuestions.Select(pq => pq.Order).ToArray()
                 })
                 .SingleOrDefault(x => x.Id == data.SelectedDir && x.IsGlobal == false);
 
@@ -480,7 +494,7 @@ namespace GetReady.Services.Implementations
                 .ToArray();
 
             var initOrder = 0;
-            if(targetDirectory.orders.Length> 0)
+            if (targetDirectory.orders.Length > 0)
             {
                 initOrder = targetDirectory.orders.Max() + 1;
             }
