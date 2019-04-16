@@ -9,9 +9,9 @@
         QuestionSheetGet GetOnePublic(int id);
 
 
-        int CreatePersonal(QuestionSheetCreate data, int userId);
+        SheetIndexWithScope CreatePersonal(QuestionSheetCreate data, int userId);
 
-        int CreateGlobal(QuestionSheetCreate data);
+        SheetIndexWithScope CreateGlobal(QuestionSheetCreate data);
 
         void CreateRoot(int userId);
 
@@ -21,14 +21,14 @@
         QuestionSheetPersonalIndex GetPersonalSheetIndex(int sheetId, int userId);
 
 
-        void EditPersonal(QuestionSheetEdit data, int userId);
+        SheetIndexWithScope EditPersonal(QuestionSheetEdit data, int userId);
 
-        void EditGlobal(QuestionSheetEdit data);
+        SheetIndexWithScope EditGlobal(QuestionSheetEdit data);
 
 
-        void DeleteGlobal(int id);
+        int DeleteGlobal(int id);
 
-        void DeletePersonal(int id, int userId);
+        int DeletePersonal(int id, int userId);
 
 
         PersonalSheetForAllFolders[] GetAllFoldersPersonal(int userId);

@@ -4,14 +4,14 @@
 
     public interface IQuestionService //17
     {
-        int CreatePersonal(QuestionCreate data, int userId);
+        QuestionIndexWithScope CreatePersonal(QuestionCreate data, int userId);
 
-        int CreateGlobal(QuestionCreate data);
+        QuestionIndexWithScope CreateGlobal(QuestionCreate data);
 
 
-        void DeleteGlobal(int id);
+        int DeleteGlobal(int id);
 
-        void DeletePersonal(int id, int userId);
+        int DeletePersonal(int id, int userId);
 
         void DeleteAllPersonalForSheet(int id, int userId);
 
@@ -25,9 +25,9 @@
         int[] GetQuestionIdsForApproval();
 
 
-        void EditPersonal(QuestionEdit data, int userId);
+        QuestionIndexWithScope EditPersonal(QuestionEdit data, int userId);
 
-        void EditGlobal(QuestionEdit data);
+        QuestionIndexWithScope EditGlobal(QuestionEdit data);
 
 
         void Reorder(ReorderData data, int userId);

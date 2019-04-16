@@ -25,7 +25,7 @@ namespace GetReady.Services.Implementations
         #endregion
 
         #region Create 
-        public int CreateGlobal(QuestionCreate data)
+        public QuestionIndexWithScope CreateGlobal(QuestionCreate data)
         {
             var parentSheet = this.context.QuestionSheets
                 .Select(qs => new
@@ -60,10 +60,15 @@ namespace GetReady.Services.Implementations
 
             context.GlobalQuestionPackages.Add(result);
             context.SaveChanges();
-            return result.Id;
+
+            return new QuestionIndexWithScope
+            {
+                isGlobal = true,
+                data = Mapper.Map<QuestionGlobalIndex>(result),
+            };
         }
 
-        public int CreatePersonal(QuestionCreate data, int userId)
+        public QuestionIndexWithScope CreatePersonal(QuestionCreate data, int userId)
         {
             var parentSheet = this.context.QuestionSheets
                 .Select(qs => new
@@ -119,12 +124,17 @@ namespace GetReady.Services.Implementations
 
             context.PersonalQuestionPackages.Add(result);
             context.SaveChanges();
-            return result.Id;
+
+            return new QuestionIndexWithScope
+            {
+                isGlobal = false,
+                data = Mapper.Map<QuestionGlobalIndex>(result),
+            };
         }
         #endregion
 
         #region Delete
-        public void DeleteGlobal(int id)
+        public int DeleteGlobal(int id)
         {
             var questionToDelete = context.GlobalQuestionPackages.SingleOrDefault(x => x.Id == id);
             if (questionToDelete == null)
@@ -134,9 +144,10 @@ namespace GetReady.Services.Implementations
 
             context.GlobalQuestionPackages.Remove(questionToDelete);
             context.SaveChanges();
+            return id;
         }
 
-        public void DeletePersonal(int id, int userId)
+        public int DeletePersonal(int id, int userId)
         {
             var user = this.context.Users.SingleOrDefault(x => x.Id == userId);
             if (user == null)
@@ -166,6 +177,7 @@ namespace GetReady.Services.Implementations
 
             this.context.PersonalQuestionPackages.Remove(queston);
             this.context.SaveChanges();
+            return id;
         }
 
 
@@ -265,7 +277,7 @@ namespace GetReady.Services.Implementations
         #endregion
 
         #region Edit
-        public void EditPersonal(QuestionEdit data, int userId)
+        public QuestionIndexWithScope EditPersonal(QuestionEdit data, int userId)
         {
             var user = this.context.Users.SingleOrDefault(x => x.Id == userId);
             if (user == null)
@@ -298,9 +310,15 @@ namespace GetReady.Services.Implementations
             question.Answer = data.Answer;
             question.Difficulty = data.Difficulty.Value;
             context.SaveChanges();
+
+            var outData = Mapper.Map<QuestionGlobalIndex>(question);
+            return new QuestionIndexWithScope() {
+                isGlobal = false,
+                data = outData,
+            };
         }
 
-        public void EditGlobal(QuestionEdit data)
+        public QuestionIndexWithScope EditGlobal(QuestionEdit data)
         {
             var question = this.context.GlobalQuestionPackages
                 .SingleOrDefault(x => x.Id == data.Id);
@@ -315,6 +333,13 @@ namespace GetReady.Services.Implementations
             question.Answer = data.Answer;
             question.Difficulty = data.Difficulty.Value;
             context.SaveChanges();
+
+            var outData = Mapper.Map<QuestionGlobalIndex>(question);
+            return new QuestionIndexWithScope()
+            {
+                isGlobal = true,
+                data = outData,
+            };
         }
         #endregion
 

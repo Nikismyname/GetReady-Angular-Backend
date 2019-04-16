@@ -12,7 +12,7 @@
         public float AnswerRate { get; set; }
 
         public int TimesBeingAnswered { get; set; }
-
+         
         public int Order { get; set; }    
     }
 }

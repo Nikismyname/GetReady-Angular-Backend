@@ -63,7 +63,7 @@ namespace GetReady.Web.Controllers
         {
             try
             {
-                var result = questionSheetService.CreateGlobal(data);
+                SheetIndexWithScope result = questionSheetService.CreateGlobal(data);
                 return Ok(result);
             }
             catch (Exception e)
@@ -80,7 +80,7 @@ namespace GetReady.Web.Controllers
             try
             {
                 var userData = jwtService.ParseData(this.User);
-                var result = questionSheetService.CreatePersonal(data, userData.UserId);
+                SheetIndexWithScope result = questionSheetService.CreatePersonal(data, userData.UserId);
                 return Ok(result);
             }
             catch (Exception e)
@@ -98,8 +98,8 @@ namespace GetReady.Web.Controllers
         {
             try
             {
-                questionSheetService.EditGlobal(data);
-                return Ok();
+                SheetIndexWithScope result = questionSheetService.EditGlobal(data);
+                return Ok(result);
             }
             catch (Exception e)
             {
@@ -115,8 +115,8 @@ namespace GetReady.Web.Controllers
             try
             {
                 var userData = jwtService.ParseData(this.User);
-                questionSheetService.EditPersonal(data, userData.UserId);
-                return Ok();
+                SheetIndexWithScope result = questionSheetService.EditPersonal(data, userData.UserId);
+                return Ok(result);
             }
             catch (Exception e)
             {
@@ -211,8 +211,8 @@ namespace GetReady.Web.Controllers
         {
             try
             {
-                questionSheetService.DeleteGlobal(id);
-                return Ok();
+                int iid = questionSheetService.DeleteGlobal(id);
+                return Ok(iid);
             }
             catch (Exception e)
             {
@@ -228,8 +228,8 @@ namespace GetReady.Web.Controllers
             try
             {
                 var userData = jwtService.ParseData(this.User);
-                questionSheetService.DeletePersonal(id, userData.UserId);
-                return Ok();
+                int iid = questionSheetService.DeletePersonal(id, userData.UserId);
+                return Ok(iid);
             }
             catch (Exception e)
             {

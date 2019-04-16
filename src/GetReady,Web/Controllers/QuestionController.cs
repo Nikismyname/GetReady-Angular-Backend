@@ -96,8 +96,8 @@ namespace GetReady.Web.Controllers
         {
             try
             {
-                questionService.DeleteGlobal(id);
-                return Ok();
+                int result = questionService.DeleteGlobal(id);
+                return Ok(result);
             }
             catch (Exception e)
             {
@@ -113,8 +113,8 @@ namespace GetReady.Web.Controllers
             try
             {
                 var userData = jwtService.ParseData(this.User);
-                questionService.DeletePersonal(id, userData.UserId);
-                return Ok();
+                int result = questionService.DeletePersonal(id, userData.UserId);
+                return Ok(result);
             }
             catch (Exception e)
             {
@@ -148,7 +148,7 @@ namespace GetReady.Web.Controllers
         {
             try
             {
-                var result = questionService.CreateGlobal(data);
+                QuestionIndexWithScope result = questionService.CreateGlobal(data);
                 return Ok(result);
             }
             catch (Exception e)
@@ -165,7 +165,7 @@ namespace GetReady.Web.Controllers
             try
             {
                 var userData = jwtService.ParseData(this.User);
-                var result = questionService.CreatePersonal(data, userData.UserId);
+                QuestionIndexWithScope result = questionService.CreatePersonal(data, userData.UserId);
                 return Ok(result);
             }
             catch (Exception e)
@@ -183,8 +183,8 @@ namespace GetReady.Web.Controllers
         {
             try
             {
-                questionService.EditGlobal(data);
-                return Ok();
+                QuestionIndexWithScope result = questionService.EditGlobal(data);
+                return Ok(result);
             }
             catch (Exception e)
             {
@@ -200,8 +200,8 @@ namespace GetReady.Web.Controllers
             try
             {
                 var userData = jwtService.ParseData(this.User);
-                questionService.EditPersonal(data, userData.UserId);
-                return Ok();
+                QuestionIndexWithScope result = questionService.EditPersonal(data, userData.UserId);
+                return Ok(result);
             }
             catch (Exception e)
             {

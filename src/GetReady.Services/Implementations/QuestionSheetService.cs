@@ -1,6 +1,7 @@
 ﻿#region INIT
 namespace GetReady.Services.Implementations
 {
+    using AutoMapper;
     using GetReady.Data;
     using GetReady.Data.Models.QuestionModels;
     using GetReady.Services.Contracts;
@@ -41,14 +42,9 @@ namespace GetReady.Services.Implementations
             {
                 throw new ServiceException("Sheet does not belong to you!");
             }
-
-            return new QuestionSheetGet
-            {
-                Name = sheet.Name,
-                Description = sheet.Description,
-                Difficulty = sheet.Difficulty,
-                Importance = sheet.Importance,
-            };
+            
+            var result = Mapper.Map<QuestionSheetGet>(sheet);
+            return result;
         }
 
         public QuestionSheetGet GetOnePublic(int id)
@@ -60,13 +56,8 @@ namespace GetReady.Services.Implementations
                 throw new ServiceException("Sheet not found!");
             }
 
-            return new QuestionSheetGet
-            {
-                Name = sheet.Name,
-                Description = sheet.Description,
-                Difficulty = sheet.Difficulty,
-                Importance = sheet.Importance,
-            };
+            var result = Mapper.Map<QuestionSheetGet>(sheet);
+            return result;
         }
         #endregion
 
@@ -126,7 +117,7 @@ namespace GetReady.Services.Implementations
         #endregion
 
         #region Create
-        public int CreateGlobal(QuestionSheetCreate data)
+        public SheetIndexWithScope CreateGlobal(QuestionSheetCreate data)
         {
             var parentSheet = this.context.QuestionSheets
                 .SingleOrDefault(x => x.Id == data.ParentSheetId);
@@ -161,10 +152,15 @@ namespace GetReady.Services.Implementations
 
             context.QuestionSheets.Add(sheet);
             context.SaveChanges();
-            return sheet.Id;
+
+            return new SheetIndexWithScope
+            {
+                isGlobal = true,
+                data = Mapper.Map<QuestionSheetChildIndex>(sheet),
+            };
         }
 
-        public int CreatePersonal(QuestionSheetCreate data, int userId)
+        public SheetIndexWithScope CreatePersonal(QuestionSheetCreate data, int userId)
         {
             var parentSheet = this.context.QuestionSheets
                 .SingleOrDefault(x => x.Id == data.ParentSheetId);
@@ -203,7 +199,12 @@ namespace GetReady.Services.Implementations
 
             context.QuestionSheets.Add(sheet);
             context.SaveChanges();
-            return sheet.Id;
+
+            return new SheetIndexWithScope
+            {
+                isGlobal = false,
+                data = Mapper.Map<QuestionSheetChildIndex>(sheet),
+            };
         }
 
         public void CreateRoot(int userId)
@@ -240,7 +241,7 @@ namespace GetReady.Services.Implementations
         #endregion
 
         #region Delete
-        public void DeleteGlobal(int id)
+        public int DeleteGlobal(int id)
         {
             var globalSheet = this.context.QuestionSheets
                 .Include(x => x.GlobalQuestions)
@@ -261,6 +262,8 @@ namespace GetReady.Services.Implementations
             {
                 throw new ServiceException("There Was a Problem With Cascade Delete Global!");
             }
+
+            return id;
         }
 
         private void CascadeDeleteGlobal(QuestionSheet sheet)
@@ -280,7 +283,7 @@ namespace GetReady.Services.Implementations
             context.QuestionSheets.Remove(sheet);
         }
 
-        public void DeletePersonal(int id, int userId)
+        public int DeletePersonal(int id, int userId)
         {
             var user = context.Users.SingleOrDefault(x => x.Id == userId);
             if (user == null)
@@ -307,6 +310,8 @@ namespace GetReady.Services.Implementations
             {
                 throw new ServiceException("There Was a Problem With Cascade Delete Personal!");
             }
+
+            return id;
         }
 
         private void CascadeDeletePersonal(QuestionSheet sheet)
@@ -367,7 +372,7 @@ namespace GetReady.Services.Implementations
         #endregion
 
         #region Edit
-        public void EditPersonal(QuestionSheetEdit data, int userId)
+        public SheetIndexWithScope EditPersonal(QuestionSheetEdit data, int userId)
         {
             var user = context.Users.SingleOrDefault(x => x.Id == userId);
 
@@ -395,9 +400,15 @@ namespace GetReady.Services.Implementations
             sheet.Importance = data.Importance.Value;
 
             context.SaveChanges();
+
+            return new SheetIndexWithScope
+            {
+                isGlobal = false,
+                data = Mapper.Map<QuestionSheetChildIndex>(sheet),
+            };
         }
 
-        public void EditGlobal(QuestionSheetEdit data)
+        public SheetIndexWithScope EditGlobal(QuestionSheetEdit data)
         {
             var sheet = context.QuestionSheets
                 .SingleOrDefault(x => x.Id == data.Id && x.IsGlobal == true);
@@ -413,6 +424,12 @@ namespace GetReady.Services.Implementations
             sheet.Importance = data.Importance.Value;
 
             context.SaveChanges();
+
+            return new SheetIndexWithScope
+            {
+                isGlobal = true,
+                data = Mapper.Map<QuestionSheetChildIndex>(sheet),
+            };
         }
         #endregion
 
