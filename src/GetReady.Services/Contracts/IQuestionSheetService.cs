@@ -13,7 +13,7 @@
 
         SheetIndexWithScope CreateGlobal(QuestionSheetCreate data);
 
-        void CreateRoot(int userId);
+        void CreateRoot(int userId); 
 
 
         QuestionSheetGlobalIndex GetGlobalSheetIndex(int sheetId);

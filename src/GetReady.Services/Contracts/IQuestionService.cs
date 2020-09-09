@@ -2,7 +2,7 @@
 {
     using GetReady.Services.Models.QuestionModels;
 
-    public interface IQuestionService //17
+    public interface IQuestionService
     {
         QuestionIndexWithScope CreatePersonal(QuestionCreate data, int userId);
 

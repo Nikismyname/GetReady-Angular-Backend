@@ -365,40 +365,63 @@ namespace GetReady.Services.Implementations
                 throw new ServiceException("Sheet Does Not Belong To You!");
             }
 
+            //TODO: make it so it only updates the the changes again
+
             var orderings = data.Orderings
                 .Select((x, i) => new { id = x[0], newOrder = i, oldOrder = x[1] })
-                .Where(x => x.newOrder != x.oldOrder)
-                .OrderBy(x => x.oldOrder)
+                .OrderBy(x => x.id)
                 .ToArray();
 
-            var questionsToChange = this.context.PersonalQuestionPackages
-                .Where(x => x.QuestionSheetId == sheet.Id && orderings.Select(o => o.oldOrder).Contains(x.Order))
-                .OrderBy(x => x.Order)
+            var dbQuestions = this.context.PersonalQuestionPackages
+                .Where(x => x.QuestionSheetId == sheet.Id)
+                .OrderBy(x => x.Id)
                 .ToArray();
 
             bool shouldReorderAll = false;
 
-            for (int i = 0; i < questionsToChange.Length; i++)
+            for (int i = 0; i < dbQuestions.Length; i++)
             {
-                if (orderings[i].oldOrder != questionsToChange[i].Order || orderings[i].id != questionsToChange[i].Id)
+                var dbQuestion = dbQuestions[i];
+                var ordering = orderings[i];
+                if (dbQuestion.Id != ordering.id)
                 {
                     shouldReorderAll = true;
                     break;
                 }
-
-                questionsToChange[i].Order = orderings[i].newOrder;
             }
 
-            if (shouldReorderAll)
+            if(dbQuestions.Length != orderings.Length)
             {
-                var allQuestions = this.context.PersonalQuestionPackages
-                   .Where(x => x.QuestionSheetId == sheet.Id)
-                   .OrderBy(x => x.Order)
-                   .ToArray();
+                shouldReorderAll = true;
+            }
 
-                for (int i = 0; i < allQuestions.Length; i++)
+            if (!shouldReorderAll)
+            {
+                for (int i = 0; i < dbQuestions.Length; i++)
                 {
-                    allQuestions[i].Order = i;
+                    var dbQuestion = dbQuestions[i];
+                    var ordering = orderings[i];
+                    dbQuestion.Order = ordering.newOrder;
+                }
+            }
+            else
+            {
+                var thereIsDiscrepency = false; 
+
+                dbQuestions = dbQuestions.OrderBy(x => x.Order).ToArray();
+                for (int i = 0; i < dbQuestions.Length; i++)
+                {
+                    if(dbQuestions[i].Order != i) {
+                        thereIsDiscrepency = true;
+                        break;
+                    }
+                }
+                if (thereIsDiscrepency)
+                {
+                    for (int i = 0; i < dbQuestions.Length; i++)
+                    {
+                        dbQuestions[i].Order = i;
+                    }
                 }
             }
 
@@ -414,43 +437,73 @@ namespace GetReady.Services.Implementations
                 throw new ServiceException("Sheet to Reorder Does not Exist!");
             }
 
+            //TODO: make it so it only updates the the changes again
+
             var orderings = data.Orderings
-                .Select((x, i) => new {Id =x[0], newOrder = i, oldOrder = x[1] })
-                .Where(x => x.newOrder != x.oldOrder)
-                .OrderBy(x => x.oldOrder)
+                .Select((x, i) => new { id = x[0], newOrder = i, oldOrder = x[1] })
+                .OrderBy(x => x.id)
                 .ToArray();
 
-            var questionsToChange = this.context.GlobalQuestionPackages
-                .Where(x => x.QuestionSheetId == sheet.Id && orderings.Select(o => o.oldOrder).Contains(x.Order))
-                .OrderBy(x => x.Order)
+            var dbQuestions = this.context.GlobalQuestionPackages
+                .Where(x => x.QuestionSheetId == sheet.Id)
+                .OrderBy(x => x.Id)
                 .ToArray();
 
-            var shouldReorder = false;
-            
-            for (int i = 0; i < questionsToChange.Length; i++)
+            bool shouldReorderAll = false;
+
+            for (int i = 0; i < dbQuestions.Length; i++)
             {
-                if (orderings[i].oldOrder != questionsToChange[i].Order || orderings[i].Id != questionsToChange[i].Id)
+                var dbQuestion = dbQuestions[i];
+                var ordering = orderings[i];
+                if (dbQuestion.Id != ordering.id)
                 {
-                    shouldReorder = true;
+                    shouldReorderAll = true;
                     break;
                 }
-
-                questionsToChange[i].Order = orderings[i].newOrder;
             }
 
-            if (shouldReorder)
+            if (dbQuestions.Length != orderings.Length)
             {
-                var allQuestions = this.context.GlobalQuestionPackages
-                    .Where(x => x.QuestionSheetId == sheet.Id)
-                    .OrderBy(x => x.Order)
-                    .ToArray();
+                shouldReorderAll = true;
+            }
 
-                for (int i = 0; i < allQuestions.Length; i++)
+            if (!shouldReorderAll)
+            {
+                for (int i = 0; i < dbQuestions.Length; i++)
                 {
-                    allQuestions[i].Order = i;
+                    var dbQuestion = dbQuestions[i];
+                    var ordering = orderings[i];
+                    if (dbQuestion.Id != ordering.id)
+                    {
+                        shouldReorderAll = true;
+                        break;
+                    }
+
+                    dbQuestion.Order = ordering.newOrder;
                 }
             }
+            else 
+            {
+                var thereIsDiscrepency = false;
 
+                dbQuestions = dbQuestions.OrderBy(x => x.Order).ToArray();
+                for (int i = 0; i < dbQuestions.Length; i++)
+                {
+                    if (dbQuestions[i].Order != i)
+                    {
+                        thereIsDiscrepency = true;
+                        break;
+                    }
+                }
+                if (thereIsDiscrepency)
+                {
+                    for (int i = 0; i < dbQuestions.Length; i++)
+                    {
+                        dbQuestions[i].Order = i;
+                    }
+                }
+            }
+            
             context.SaveChanges();
         }
         #endregion
